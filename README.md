@@ -12,7 +12,7 @@ To classify soil texture using the USDA texture triangle, map spatial variabilit
 - Coordinates (WGS84)
 - Format: CSV / XLSX
 #### 2. World Soil Grid (ISRIC)
-- Sand, Silt, Clay (0–5 cm depth)
+- Sand, Silt, Clay (0-5 cm depth)
 - Resolution: 250 m
 - Format: GeoTIFF
 #### 3. Study Area
