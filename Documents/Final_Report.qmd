@@ -1,5 +1,154 @@
 ---
-title: "Final_Report"
-format: html
+title:  "Soil Texture Classification and Spatial Mapping"
+author:    "Noman Ahmad"
+date:   "24 November 2025"
+format: pdf
+execute:  
+  echo: true  
+  warning: false  
+  message: false  
+toc: true
+toc-depth: 3
+number-sections: true
+bibliography: references.bib
 ---
 
+\newpage
+
+# Introduction
+
+Soil texture, defined by the relative proportions of sand, silt, and clay, is a fundamental property that influences water retention, nutrient availability, erosion susceptibility, and overall soil fertility [@daniels2016]. Understanding the spatial distribution of soil texture is essential for applications in agriculture, land management, hydrology, and environmental modeling. Field-based soil sampling provides precise measurements at specific locations but is typically limited in spatial coverage due to time, labor, and cost constraints [@mcbratney2003]. On the other hand, global soil datasets, such as the World Soil Grid (WSG), provide spatially continuous estimates of soil properties at continental to global scales [@hengl2017]. While useful for broad-scale analyses, these datasets may not accurately capture fine-scale variability present in local landscapes.
+
+Integrating field-measured soil data with global soil grids, combined with spatial interpolation techniques such as Inverse Distance Weighting (IDW) and Kriging, allows researchers to generate detailed maps of soil texture and identify patterns of spatial heterogeneity [@li2011]. Such integration improves the reliability of soil property assessments and supports decision-making in precision agriculture and environmental management. The present study focuses on classifying soil texture from field samples using the USDA soil texture triangle, generating spatially continuous interpolated maps, and comparing these results with World Soil Grid estimates. The analysis aims to highlight areas of agreement and discrepancy between local measurements and global predictions, thereby providing a more comprehensive understanding of soil texture variability in the study area.
+
+## Research Question
+
+How do soil texture classes derived from field-measured soil samples differ from those estimated by the World Soil Grid, and what spatial patterns emerge when using interpolation techniques in R?
+
+## Hypothesis
+
+Field-derived soil texture classes will show finer spatial variation than World Soil Grid predictions, with higher disagreement in areas of micro-scale heterogeneity.
+
+## Objective
+
+To classify soil texture using the USDA texture triangle, map spatial variability using interpolation, and compare results with World Soil Grid data.
+
+# **Data Sources**
+
+**1. Field Soil Data**
+
+-   Sand (%), Silt (%), Clay (%)
+
+-   Coordinates (WGS84)
+
+-   Format: CSV / XLSX
+
+**2. World Soil Grid (ISRIC)**
+
+-   Sand, Silt, Clay (0-5 cm depth)
+
+-   Resolution: 250 m
+
+-   Format: GeoTIFF
+
+**3. Study Area**
+
+-   Shapefile defining the project boundary
+
+# Analysis
+
+## Requirements
+
+``` r
+library(tidyverse)
+library(readxl)
+library(soiltexture)
+```
+
+## Data Cleaning
+
+``` r
+# 1. Read raw data
+soil <- read_xlsx("A:/Class_Assignments/SCaM/Data/Raw/Soil_Water_Data.xlsx")
+print(soil)
+
+# 2. Columns rename for clarity
+soil <- soil %>%
+  rename(SAND = `Sand_%`, SILT = `Silt_%`, CLAY = `Clay_%`, 
+         OM = `O.M`, SS = `Soil_Saturation_%`)
+
+# 3. Missing values removal
+soil <- soil %>%
+  filter(!is.na(SAND) & !is.na(SILT) & !is.na(CLAY) 
+         & !is.na(OM) & !is.na(SS))
+
+# 4. Validation of sum of soil texture components 
+soil <- soil %>%
+  mutate(total = SAND + SILT + CLAY) %>%
+  filter(total == 100 )
+
+# 5. Save cleaned & seperated soil texture data
+ST.data <- soil %>% select(Address_code, SAND, SILT, CLAY, OM, SS)
+write_csv(ST.data, "Data/Processed/Soil_Data_Cleaned.csv")
+```
+
+## Texture Classification
+
+``` r
+library(soiltexture)
+
+# 1. Read processed data
+soil_data <- read.csv("Data/Processed/Soil_Data_Cleaned.csv")
+
+# 2. Get ISSS/USDA/FAO texture matrix
+tex_matrix <- TT.points.in.classes(tri.data = soil_data[
+  c("SAND", "SILT", "CLAY")], class.sys = "USDA.TT")
+print(tex_matrix)
+
+# 3. Convert matrix (0/1) to a single texture class column
+soil_data$Texture_Class <- apply(tex_matrix, 1, function(row) 
+  {classes <- names(row)[row == 1]; if (length(classes) == 0) 
+    return(NA); classes[1]})
+SoilTC <- soil_data %>% select(Address_code, SAND, SILT, CLAY, Texture_Class)
+print(SoilTC)
+write.csv(SoilTC, "A:/Class_Assignments/SCaM/Outputs/Tables/Soiltexc.csv")
+
+# 4. Soil Texture Triangle
+
+tiff("A:/Class_Assignments/SCaM/Outputs/Figures/Soil_Texture_Triangle.tiff",
+     width = 2000, height = 1800, res = 300, compression = "lzw")
+
+par(family = "serif")
+
+classes <- unique(soil_data$Texture_Class)
+classes <- classes[!is.na(classes)]
+
+palette_colors <- rainbow(length(classes))
+names(palette_colors) <- classes
+
+TT.plot(class.sys = "USDA.TT",  main = "USDA Soil Texture Classification",
+  cex.lab = 1.1, cex.axis = 1.0, cex.main = 1.25, frame.bg.col = "white")
+
+TT.points(tri.data = soil_data, geo = TT.geo.get("USDA.TT"),
+  col = palette_colors[soil_data$Texture_Class], pch = 19, cex = 1.2)
+
+legend("topleft", inset = c(1.04, 0.06), legend = classes, 
+       col = palette_colors[classes], title = "Classes", title.cex = 1.0, 
+       title.font = 2, pch = 19, pt.cex = 1.0, cex = 0.9, bty = "o")
+
+dev.off()
+```
+
+![USDA Soil Texture Triangle showing the classification of soil texture based on the proportions of sand, silt, and clay.](images/Soil_Texture_Triangle.jpg){fig-align="center" width="557"}
+
+------------------------------------------------------------------------
+
+\begin{center}
+TO BE CONTINUED
+\end{center}
+
+------------------------------------------------------------------------
+
+\newpage
+
+# References
