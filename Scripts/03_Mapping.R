@@ -5,6 +5,7 @@
 # 0. Libraries -----------------------------------------------------------------
 library(sf)
 library(sp)
+library(terra)
 library(gstat)
 library(raster)
 library(geodata)
