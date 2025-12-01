@@ -1,0 +1,57 @@
+Package: SCaM
+Type   : Project
+Title  : Soil Texture Classification and Mapping
+Version: 0.1.0
+Authors: ("Noman Ahmad"), role = c("aut", "cre"), email = "your-email")
+===============================================================================
+IMPORTS:
+# SCaM - Soil Texture Classification and Mapping
+# Required R packages
+The following R packages are required to run the SCaM (Soil Classification and 
+Mapping) workflow. Install them before executing any scripts.
+-------------------------------------------------
+tidyverse   # Data manipulation and visualization
+readxl      # Excel input
+soiltexture # USDA texture classification
+sf          # Simple features (spatial)
+sp          # Spatial classes
+gstat       # Variography and kriging
+raster      # Raster processing
+terra       # Modern raster + vector handling
+geodata     # Downloads SoilGrids layers
+ggplot2     # Plotting (explicitly used)
+patchwork   # Combine plots
+ggspatial   # Spatial map annotations
+-------------------------------------------------
+
+# DATA REQUIREMENTS FOR THE SCaM PROJECT
+
+1. Soil Sample Dataset (Required)
+   This dataset contains the point-level soil texture observations used for 
+   cleaning, USDA classification, interpolation, and mapping. 
+   (Accepted File Formats:  .csv   .xlsx)
+   
+2. Required Columns:
+    -> Latitude (decimal degrees, WGS84)
+    -> Longitude (decimal degrees, WGS84)
+    -> Sand (%)
+    -> Silt (%)
+    -> Clay (%)
+   
+   Rules: Sand + Silt + Clay ≈ 100%; No missing coordinates;
+          Coordinates must fall inside the study area
+
+3. Study Area Boundary Shapefile (Required) 
+   Accepted Formats:
+      -> .shp, .dbf, .shx, .gpkg, 
+      -> Any other supported by sf::st_read()
+   CRS:
+      -> Input: any
+      -> Workflow uses EPSG:4326 (WGS84)
+
+4. SoilGrids Data (Optional) Variables: (Sand, Silt, Clay)
+   Depth Levels: (0-5 cm, 5–15 cm, 15–30 cm etc.)
+   Format: .tif rasters downloaded via geodata::soil_grids() from SoilGrids.org
+  
+                       -----Thank You!-----
+
