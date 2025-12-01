@@ -6,10 +6,12 @@
 library(sf)
 library(sp)
 library(gstat)
+library(raster)
+library(geodata)
 library(ggplot2)
+library(patchwork)
 library(ggspatial)
 library(soiltexture)
-library(patchwork)
 
 # 1. Paths & CRS ---------------------------------------------------------------
 input_csv   <- "Data/Processed/Soil_Data_Cleaned.csv"
@@ -259,8 +261,7 @@ idw_sf_wgs84$lat <- coords_idw[,2]
 # 6. Build IDW-specific legend (critical fix) ----------------------------------
 used_idw <- sort(unique(idw_sf_wgs84$USDA_texture))
 
-idw_sf_wgs84$USDA_texture <- factor(idw_sf_wgs84$USDA_texture,
-                                    levels = used_idw)
+idw_sf_wgs84$USDA_texture <- factor(idw_sf_wgs84$USDA_texture, levels = used_idw)
 
 palette_used_idw <- palette_usda[used_idw]
 
@@ -292,14 +293,149 @@ print(p_idw)
 ggsave(file.path(out_fig_dir, "USDA_soil_texture_classes_IDW_map.png"),
        plot = p_idw, width = 10, height = 8, dpi = 300)
 
+
+###############################################################################
+# ----------- SoilGrids.org Soil Texture Classification (EXTENSION) -----------#
+###############################################################################
+
+# 1. Load study area (ensure WGS84) --------------------------------------------
+study_area <- st_read("A:/Class_Assignments/SCaM/Data/Raw/study_area.shp")
+study_area_sf <- st_transform(study_area, 4326)
+study_area <- vect(study_area_sf)  # sf -> terra
+
+# 2. Download SoilGrids raster datasets (5–15 cm layer = depth = 15) -----------
+path <- "A:/Class_Assignments/SCaM/Data/Raw/soilgrids_data"
+
+sand <- soil_world("sand", depth = 15, stat = "mean", path = path)
+silt <- soil_world("silt", depth = 15, stat = "mean", path = path)
+clay <- soil_world("clay", depth = 15, stat = "mean", path = path)
+
+# 3. Crop + mask study area -> View -> Save .tif -------------------------------
+
+sand_c <- mask(crop(sand, study_area), study_area)
+silt_c <- mask(crop(silt, study_area), study_area)
+clay_c <- mask(crop(clay, study_area), study_area)
+
+plot(sand_c, main = "Sand (Clipped)")
+plot(silt_c, main = "Silt (Clipped)")
+plot(clay_c, main = "Clay (Clipped)")
+
+writeRaster(sand_c, "A:/Class_Assignments/SCaM/Data/Processed/sand_clipped.tif")
+writeRaster(silt_c, "A:/Class_Assignments/SCaM/Data/Processed/silt_clipped.tif")
+writeRaster(clay_c, "A:/Class_Assignments/SCaM/Data/Processed/clay_clipped.tif")
+
+# 4. Read and project rasters --------------------------------------------------
+SAND.raw <- raster("Data/Processed/clay_clipped.tif")
+CLAY.raw <- raster("Data/Processed/clay_clipped.tif")
+
+# Read projection system
+crs(CLAY.raw)
+projection(CLAY.raw)
+
+# Create projection system (correct syntax)
+utm <- CRS("+proj=longlat +datum=WGS84 +no_defs")
+
+# Assign/Project to new projection system
+CLAY <- projectRaster(from = CLAY.raw, crs = utm, method = "ngb")
+crs(CLAY)
+projection(CLAY)
+
+SAND <- projectRaster(from = SAND.raw, crs = utm, method = "ngb")
+
+# 5. Creat & join point from rasters -------------------------------------------
+point1 <- rasterToPoints(CLAY, fun = function(x) {x>0}, spatial = TRUE)
+plot(CLAY)
+names(point1)
+
+# Extract sand values
+x <- extract(SAND, point1)
+
+# Join the extracted values to point shape file
+point2 <- cbind(point1, x)
+names(point2)
+names(point2) <- c("CLAY", "SAND")
+names(point2)
+
+# 6. Convert to data frame -----------------------------------------------------
+point3 <- as.data.frame(point2)
+names(point3)
+head(point3)
+
+# 7. Calculate silt value and create soil texture classes ----------------------
+point3$SILT <- 100-point3$CLAY-point3$SAND
+head(point3)
+
+# Create soil texture class
+point3$Texture <- TT.points.in.classes(tri.data = point3, class.sys = "USDA.TT",
+                                       PiC.type = "t")
+head(point3)
+str(point3)
+
+point3$TextureClass = factor(point3$Texture)
+point3$i.texclass = as.numeric(point3$TextureClass)
+r = rasterFromXYZ(point3[, c("x", "y", "i.texclass")], crs = utm)
+print(r)
+
+r[] = as.numeric(factor(levels(point3$TextureClass))[r[]])
+
+# Define the custom color palette for soil texture classes
+manual_palette <- c(
+  "#b2182b", "#ffd8b1", "#f4a582", "#92c5de",
+  "#fddbc7", "#1b7837", "#2166ac", "#67a9cf",
+  "#d1e5f0", "#f7f7f7", "#F4D06F", "#F5A65B"
+)
+
+# Now plot the raster with the manual color palette
+plot(r, main = "Soil Texture Classes (Rasterized)", col = manual_palette)
+
+# Get the resolution (cell size) of the raster
+lon_step <- res(r)[1]  # Longitude resolution
+lat_step <- res(r)[2]  # Latitude resolution
+
+# 8. Build ggplot map with USDA Soil Texture classes ---------------------------
+p_grid <- ggplot() +
+  geom_sf(data = study_area_sf, fill = NA, color = "white", linewidth = 1.5) +  
+  geom_tile(data = point3, aes(x = x, y = y, fill = Texture),  
+            width = lon_step, height = lat_step) +
+  scale_fill_manual(values = manual_palette, drop = FALSE) +  
+  coord_sf(expand = TRUE) +  
+  labs(x = NULL, y = NULL) +  
+  theme_bw(base_family = "serif") +
+  theme(legend.position = "bottom", legend.title = element_blank(),
+        panel.grid = element_blank()) +
+  annotation_north_arrow(location = "tr", style = north_arrow_fancy_orienteering
+                         (text_family = "serif")) +
+  annotation_scale(location = "br", text_family = "serif") +
+  ggtitle("SoilGrids Data (250 m) USDA Texture Classes") +
+  theme(plot.title = element_text(face = "bold", size = 16),
+        axis.text.y = element_text(angle = 90, hjust = 0.5))
+
+print(p_grid)
+
+# 9. Save the map as PNG -------------------------------------------------------
+
+out_fig_dir <- "A:/Class_Assignments/SCaM/Outputs/Figures"
+ggsave(file.path(out_fig_dir, "SoilGrid_Data_Texture_Classification_map.png"),
+       plot = p_grid, width = 10, height = 8, dpi = 300)
+
+# 10. Save the table of x, y, and Texture --------------------------------------
+soilgrids_tab <- st_drop_geometry(point3)[, c ("x", "y", "Texture")]
+colnames(soilgrids_tab)[3] <- "Texture"
+print(soilgrids_tab)
+
+write.csv(soilgrids_tab, file.path(out_tbl_dir, "SoilGridss_table.csv"),
+          row.names = FALSE)
+
 #--------------------------------Patch Work-------------------------------------
 A <- p_kriging + ggtitle("A: USDA Soil Texture Map (Kriging)")
 B <- p_idw     + ggtitle("B: USDA Soil Texture Map (IDW)")
+C <- p_grid    + ggtitle("C: USDA Soil Texture Map (SoilGrids)")
 
-combined_plot <- (A | B)
+combined_plot <- (A | B | C)
+plot(combined_plot)
 
-ggsave(file.path(out_fig_dir, "Kriging_IDW_comparison.png"), plot = combined_plot, 
-  width = 12, height = 6, dpi = 300)
+ggsave(file.path(out_fig_dir, "Kriging_IDW_SoilGrids_comparison.png"), 
+       plot = combined_plot, width = 12, height = 6, dpi = 300)
 
 #-------------------------table (Kriging vs IDW)--------------------------------
 
