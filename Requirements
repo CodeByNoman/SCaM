@@ -2,7 +2,7 @@ Package: SCaM
 Type   : Project
 Title  : Soil Texture Classification and Mapping
 Version: 0.1.0
-Authors: ("Noman Ahmad"), role = c("aut", "cre"), email = "your-email")
+Authors: "Noman Ahmad"
 ===============================================================================
 IMPORTS:
 # SCaM - Soil Texture Classification and Mapping
