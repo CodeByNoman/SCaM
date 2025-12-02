@@ -66,10 +66,14 @@ To classify soil texture using the USDA texture triangle, map spatial variabilit
 # Quarto render Documents/Final_Report.qmd
 ```
 ## Results 
-#### 1. USDA Soil Texture Triangle
-![USDA soil texture triangle](Figures/Soil_Texture_Triangle.png)
-#### 2. Kriging, IDW, and SoilGrids Data Mapping & Comparison
+### 1. USDA Soil Texture Triangle
+<img src="Outputs/Figures/Soil_Texture_Triangle.png" alt="Soil_Texture_Triangle" width="500"/>  
 
+### 2. Kriging, IDW, and SoilGrids Data Mapping & Comparison  
+![USDA soil texture triangle](Outputs/Figures/Kriging_IDW_SoilGrids_comparison.png)  
+
+## Conclusion
+This project demonstrates that interpolated soil texture maps generated from field samples (Kriging and IDW, 250 m) reveal finer spatial variability than the global SoilGrids product. While SoilGrids offers a consistent regional baseline, the interpolation methods capture local heterogeneity reflected in measured texture class differences. This underscores the value of field data and suitable spatial interpolation when high-resolution or site-specific soil information is needed.
 ## Acknowledgements
 This project was developed with valuable support and inspiration from several open-source tools and data providers. The core code flow builds upon the excellent [soiltexture](https://doi.org/10.32614/CRAN.package.soiltexture) package by [Julien Moeys](https://github.com/julienmoeys/soiltexture). Additional inspiration was drawn from the [ggsoiltexture](https://doi.org/10.1016/j.softx.2025.102293) project of [Sara Acevedo](https://github.com/Saryace/ggsoiltexture). I also acknowledge all other R packages that are used in building this workflow. Special thanks to the [global SoilGrids (250 m)](https://soilgrids.org/) dataset for providing essential soil information used in this project.
 ## Author
