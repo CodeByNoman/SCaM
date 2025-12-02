@@ -23,8 +23,8 @@ write.csv(SoilTC, "A:/Class_Assignments/SCaM/Outputs/Tables/Soiltexc.csv")
 
 # 4. Soil Texture Triangle -----------------------------------------------------
 
-tiff("A:/Class_Assignments/SCaM/Outputs/Figures/Soil_Texture_Triangle.tiff",
-     width = 2000, height = 1800, res = 300, compression = "lzw")
+png("A:/Class_Assignments/SCaM/Outputs/Figures/Soil_Texture_Triangle.png",
+     width = 2000, height = 1800, res = 300)
 
 par(family = "serif")
 
