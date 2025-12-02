@@ -1,8 +1,7 @@
 <h1 align="center">Soil Texture Classification and Spatial Mapping Using Field Samples and World Soil Grid Data</h1>
-
 <p align="center">
   <img src="Outputs/Figures/README.png" alt="README" width="800"/>
-</p>
+</p>  
 
 This project focuses on classifying soil texture using field sample data and generating spatially continuous maps using spatial interpolation (Kriging & IDW) techniques in R. The results are compared with the World Soil Grids prediction raster dataset to assess spatial variability and map accuracy.
 ## Research Question
