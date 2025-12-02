@@ -1,6 +1,8 @@
-![README](Outputs/Figures/README.png)
+<h1 align="center">Soil Texture Classification and Spatial Mapping Using Field Samples and World Soil Grid Data</h1>
+<p align="center">
+  <img src="Outputs/Figures/README.png" alt="README" width="800"/>
+</p>  
 
-# Soil Texture Classification and Spatial Mapping Using Field Samples and World Soil Grid Data
 This project focuses on classifying soil texture using field sample data and generating spatially continuous maps using spatial interpolation (Kriging & IDW) techniques in R. The results are compared with the World Soil Grids prediction raster dataset to assess spatial variability and map accuracy.
 ## Research Question
 How do USDA soil texture classes derived from field soil samples differ from those estimated by the World Soil Grid, and what spatial patterns emerge when using different interpolation techniques (Kriging & IDW) in R?
@@ -34,9 +36,9 @@ To classify soil texture using the USDA texture triangle, map spatial variabilit
 ├── Requirements.txt             # R packages list & data requirements
 │
 ├── Scripts/
-│   ├── 01_Data_Cleaning.R       # Data preprocessing
-│   ├── 02_Classification.R      # USDA soil texture classification
-│   └── 03_Mapping.R             # Spatial Interpolation (Kriging & IDW) & Mapping
+│   ├── 01 Data_Cleaning.R       # Data preprocessing
+│   ├── 02 Classification.R      # USDA soil texture classification
+│   └── 03 Mapping.R             # Spatial Interpolation (Kriging & IDW) & Mapping
 │                                # USDA Soil Texture & Comparision
 │                                # SoilGrids data USDA texture classification & mapping
 ├── Outputs/
@@ -69,15 +71,17 @@ To classify soil texture using the USDA texture triangle, map spatial variabilit
 ```
 ## Results 
 ### 1. USDA Soil Texture Triangle
-<img src="Outputs/Figures/Soil_Texture_Triangle.png" alt="Soil_Texture_Triangle" width="500"/>  
-
+<p align="center">
+  <img src="Outputs/Figures/Soil_Texture_Triangle.png" alt="Soil_Texture_Triangle" width="500"/>
+</p>
+  
 ### 2. Kriging, IDW, and SoilGrids Data Mapping & Comparison  
 ![USDA soil texture triangle](Outputs/Figures/Kriging_IDW_SoilGrids_comparison.png)  
 
 ## Conclusion
 This project demonstrates that interpolated soil texture maps generated from field samples (Kriging and IDW, 250 m) reveal finer spatial variability than the global SoilGrids product. While SoilGrids offers a consistent regional baseline, the interpolation methods capture local heterogeneity reflected in measured texture class differences. This underscores the value of field data and suitable spatial interpolation when high-resolution or site-specific soil information is needed.
 ## Acknowledgements
-This project was developed with valuable support and inspiration from several open-source tools and data providers. The core code flow builds upon the excellent [soiltexture](https://doi.org/10.32614/CRAN.package.soiltexture) package by [Julien Moeys](https://github.com/julienmoeys/soiltexture). Additional inspiration was drawn from the [ggsoiltexture](https://doi.org/10.1016/j.softx.2025.102293) project of [Sara Acevedo](https://github.com/Saryace/ggsoiltexture). I also acknowledge all other R packages that are used in building this workflow. Special thanks to the [global SoilGrids (250 m)](https://soilgrids.org/) dataset for providing essential soil information used in this project.
+This project was developed with valuable support and inspiration from several open-source tools and data providers. The core code flow builds upon the excellent [soiltexture](https://doi.org/10.32614/CRAN.package.soiltexture) package by [Julien Moeys](https://github.com/julienmoeys/soiltexture). Additional inspiration was drawn from the [ggsoiltexture](https://doi.org/10.1016/j.softx.2025.102293) project of [Sara Acevedo](https://github.com/Saryace/ggsoiltexture). I also acknowledge all other R packages that are used in building this workflow. Special thanks to the [global SoilGrids (250 m)](https://soilgrids.org/) dataset for providing essential soil information used in this project. I also thank AI-assisted tools for helping me overcome challenges and deepen my understanding throughout this project.
 ## Author
 **Noman Ahmad**  
 Doctorate in Agricultural and Natural Sciences  
