@@ -1,6 +1,9 @@
-![README](Outputs/Figures/README.png)
+<h1 align="center">Soil Texture Classification and Spatial Mapping Using Field Samples and World Soil Grid Data</h1>
 
-# Soil Texture Classification and Spatial Mapping Using Field Samples and World Soil Grid Data
+<p align="center">
+  <img src="Outputs/Figures/README.png" alt="README" width="800"/>
+</p>
+
 This project focuses on classifying soil texture using field sample data and generating spatially continuous maps using spatial interpolation (Kriging & IDW) techniques in R. The results are compared with the World Soil Grids prediction raster dataset to assess spatial variability and map accuracy.
 ## Research Question
 How do USDA soil texture classes derived from field soil samples differ from those estimated by the World Soil Grid, and what spatial patterns emerge when using different interpolation techniques (Kriging & IDW) in R?
@@ -69,8 +72,10 @@ To classify soil texture using the USDA texture triangle, map spatial variabilit
 ```
 ## Results 
 ### 1. USDA Soil Texture Triangle
-<img src="Outputs/Figures/Soil_Texture_Triangle.png" alt="Soil_Texture_Triangle" width="500"/>  
-
+<p align="center">
+  <img src="Outputs/Figures/Soil_Texture_Triangle.png" alt="Soil_Texture_Triangle" width="500"/>
+</p>
+  
 ### 2. Kriging, IDW, and SoilGrids Data Mapping & Comparison  
 ![USDA soil texture triangle](Outputs/Figures/Kriging_IDW_SoilGrids_comparison.png)  
 
