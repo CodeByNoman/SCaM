@@ -36,9 +36,9 @@ To classify soil texture using the USDA texture triangle, map spatial variabilit
 ├── Requirements.txt             # R packages list & data requirements
 │
 ├── Scripts/
-│   ├── 01_Data_Cleaning.R       # Data preprocessing
-│   ├── 02_Classification.R      # USDA soil texture classification
-│   └── 03_Mapping.R             # Spatial Interpolation (Kriging & IDW) & Mapping
+│   ├── 01 Data_Cleaning.R       # Data preprocessing
+│   ├── 02 Classification.R      # USDA soil texture classification
+│   └── 03 Mapping.R             # Spatial Interpolation (Kriging & IDW) & Mapping
 │                                # USDA Soil Texture & Comparision
 │                                # SoilGrids data USDA texture classification & mapping
 ├── Outputs/
