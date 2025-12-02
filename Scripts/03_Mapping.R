@@ -70,7 +70,6 @@ compute_vario_params <- function(aoi_sf)
   { bb <- st_bbox(aoi_sf)
   diag_len <- sqrt((bb["xmax"] - bb["xmin"])^2 + (bb["ymax"] - bb["ymin"])^2)
   list(cutoff = diag_len / 2, width = diag_len / 30)}
-
 vp <- compute_vario_params(aoi_utm)
 
 fit_variogram <- function(spdf, z) 
@@ -104,16 +103,42 @@ var_sand <- fit_variogram(soil_sp, "SAND")
 var_silt <- fit_variogram(soil_sp, "SILT")
 var_clay <- fit_variogram(soil_sp, "CLAY")
 
-# save variograms
-save_variogram <- function(vario, name) 
-  { png(file.path(out_fig_dir, paste0("variogram_", name, ".png")),
+# function to save variogram figure
+save_variogram <- function(vario, name) {
+  png(file.path(out_fig_dir, paste0("variogram_", name, ".png")),
       width = 1200, height = 900, res = 150)
-  plot(vario$v, vario$model, main = paste("Variogram -", toupper(name)))
+  
+p <- plot(vario$v, vario$model, main = paste("Variogram -", toupper(name)))
+  print(p)
+  
   dev.off()}
 
+# save all three
 save_variogram(var_sand, "SAND")
 save_variogram(var_silt, "SILT")
 save_variogram(var_clay, "CLAY")
+
+# Convert variogram and model into a ggplot object
+vario_to_gg <- function(vario, title_prefix, var_name) {
+  
+  vdf <- vario$v
+  mdf <- variogramLine(vario$model, maxdist = max(vdf$dist))
+  
+  ggplot(vdf, aes(x = dist, y = gamma)) +
+    geom_point() +
+    geom_line(data = mdf, aes(x = dist, y = gamma)) +
+    theme_bw(base_size = 14, base_family = "serif") +
+    labs( x = "Distance", y = "Semivariance",
+      title = paste0(title_prefix, " - ", var_name) )}
+
+pA <- vario_to_gg(var_sand, "A", "SAND")
+pB <- vario_to_gg(var_silt, "B", "SILT")
+pC <- vario_to_gg(var_clay, "C", "CLAY")
+
+combined_plot <- pA / pB / pC  # vertical layout: A above B above C
+
+ggsave(filename = file.path(out_fig_dir, "variogram_ABC_patchwork.png"),
+  plot = combined_plot, width = 8, height = 12, dpi = 300)
 
 # 5. Ordinary Kriging ----------------------------------------------------------
 krige_one <- function(z, model) 

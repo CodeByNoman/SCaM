@@ -1,5 +1,5 @@
 ---
-title:  "Soil Texture Classification and Spatial Mapping"
+title:  "Soil Texture Classification and Spatial Mapping Using Field Samples and World Soil Grid Data"
 author:    "Noman Ahmad"
 date:   "24 November 2025"
 format: pdf
@@ -23,7 +23,7 @@ Integrating field-measured soil data with global soil grids, combined with spati
 
 ## Research Question
 
-How do soil texture classes derived from field-measured soil samples differ from those estimated by the World Soil Grid, and what spatial patterns emerge when using interpolation techniques in R?
+How do soil texture classes derived from field-measured soil samples differ from those estimated by the World Soil Grid, and what spatial patterns emerge when using interpolation techniques (Kriging & IDW) in R?
 
 ## Hypothesis
 
@@ -31,7 +31,7 @@ Field-derived soil texture classes will show finer spatial variation than World 
 
 ## Objective
 
-To classify soil texture using the USDA texture triangle, map spatial variability using interpolation, and compare results with World Soil Grid data.
+To classify soil texture using the USDA texture triangle, map spatial variability using interpolation techniques, and compare results with World Soil Grid data.
 
 # **Data Sources**
 
@@ -45,7 +45,7 @@ To classify soil texture using the USDA texture triangle, map spatial variabilit
 
 **2. World Soil Grid (ISRIC)**
 
--   Sand, Silt, Clay (0-5 cm depth)
+-   Sand, Silt, Clay (5-15 cm depth)
 
 -   Resolution: 250 m
 
@@ -53,50 +53,59 @@ To classify soil texture using the USDA texture triangle, map spatial variabilit
 
 **3. Study Area**
 
--   Shapefile defining the project boundary
+-   Jaranwala (Pakistan) area shapefile defining the project boundary
 
 # Analysis
 
 ## Requirements
+The following R packages are required to run the SCaM (Soil Classification and Mapping) workflow. Install them before executing any scripts.
 
 ``` r
-library(tidyverse)
-library(readxl)
-library(soiltexture)
+library (tidyverse)    # Data manipulation and visualization
+library (readxl)       # Excel input
+library (soiltexture)  # USDA texture classification
+library (sf)           # Simple features (spatial)
+library (sp)           # Spatial classes
+library (gstat)        # Variography and kriging
+library (raster)       # Raster processing
+library (terra)        # Modern raster + vector handling
+library (geodata)      # Downloads SoilGrids layers
+library (ggplot2)      # Plotting (explicitly used)
+library (patchwork)    # Combine plots
+library (ggspatial)    # Spatial map annotations
 ```
 
 ## Data Cleaning
+The data cleaning process begins by reading raw soil texture data from an Excel file. Column names are renamed to uppercase for clarity, and missing values in SAND, SILT, and CLAY are removed. The data is then validated to ensure the sum of SAND, SILT, and CLAY equals 100%, before saving the cleaned data for further analysis.
 
 ``` r
 # 1. Read raw data
-soil <- read_xlsx("A:/Class_Assignments/SCaM/Data/Raw/Soil_Water_Data.xlsx")
+soil <- read_xlsx("Data/Raw/Soil_Water_Data.xlsx")
 print(soil)
 
 # 2. Columns rename for clarity
 soil <- soil %>%
-  rename(SAND = `Sand_%`, SILT = `Silt_%`, CLAY = `Clay_%`, 
-         OM = `O.M`, SS = `Soil_Saturation_%`)
+  rename(SAND = `Sand_%`, SILT = `Silt_%`, CLAY = `Clay_%`)
 
 # 3. Missing values removal
 soil <- soil %>%
-  filter(!is.na(SAND) & !is.na(SILT) & !is.na(CLAY) 
-         & !is.na(OM) & !is.na(SS))
+  filter(!is.na(SAND) & !is.na(SILT) & !is.na(CLAY))
 
-# 4. Validation of sum of soil texture components 
+# 4. Validation of sum of soil texture components
 soil <- soil %>%
   mutate(total = SAND + SILT + CLAY) %>%
   filter(total == 100 )
 
 # 5. Save cleaned & seperated soil texture data
-ST.data <- soil %>% select(Address_code, SAND, SILT, CLAY, OM, SS)
+ST.data <- soil %>% select(Address_code, X_Coordinates, Y_Coordinates, 
+                           SAND, SILT, CLAY)
 write_csv(ST.data, "Data/Processed/Soil_Data_Cleaned.csv")
 ```
 
-## Texture Classification
+## Soil Texture Classification
+The soil texture classification is visualized using the USDA Soil Texture Triangle, which categorizes soil based on the proportions of sand, silt, and clay. After processing the cleaned data and assigning a texture class to each sample, the soil data is plotted on the triangle (Figure 1). The plot visually represents the classification of soil texture, with each sample color-coded based on its texture class. The resulting figure is saved as a high-resolution PNG for further considrations.
 
 ``` r
-library(soiltexture)
-
 # 1. Read processed data
 soil_data <- read.csv("Data/Processed/Soil_Data_Cleaned.csv")
 
@@ -115,8 +124,8 @@ write.csv(SoilTC, "A:/Class_Assignments/SCaM/Outputs/Tables/Soiltexc.csv")
 
 # 4. Soil Texture Triangle
 
-tiff("A:/Class_Assignments/SCaM/Outputs/Figures/Soil_Texture_Triangle.tiff",
-     width = 2000, height = 1800, res = 300, compression = "lzw")
+png("A:/Class_Assignments/SCaM/Outputs/Figures/Soil_Texture_Triangle.png",
+     width = 2000, height = 1800, res = 300)
 
 par(family = "serif")
 
@@ -139,7 +148,11 @@ legend("topleft", inset = c(1.04, 0.06), legend = classes,
 dev.off()
 ```
 
-![USDA Soil Texture Triangle showing the classification of soil texture based on the proportions of sand, silt, and clay.](images/Soil_Texture_Triangle.jpg){fig-align="center" width="557"}
+![USDA Soil Texture Triangle showing the classification of soil texture based on the proportions of sand, silt, and clay.](A:/Class_Assignments/SCaM/Outputs/Figures/Soil_Texture_Triangle.png){fig-align="center" width="570"}
+
+
+## Soil Texture Mapping
+### Kriging Interpolation
 
 ------------------------------------------------------------------------
 
